@@ -11,7 +11,8 @@ export type PacketNames = {
 export enum ProtocolList {
 	"1.26.1" = 924,
 	"1.26.10" = 944,
+	"1.26.20" = 975,
 }
 
-export type CurrentVersion = "1.26.10";
-export const CurrentVersionConst: CurrentVersion = "1.26.10";
+export type CurrentVersion = "1.26.20";
+export const CurrentVersionConst: CurrentVersion = "1.26.20";

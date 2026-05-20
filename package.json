@@ -11,6 +11,7 @@
     "test": "bun --filter '*' test",
     "lint": "bun --filter '*' lint",
     "clean": "bun --filter '*' clean",
-    "watch": "tsc --build --watch"
+    "watch": "tsc --build --watch",
+    "bot:idle": "bun run apps/idle-bot/index.ts"
   }
 }

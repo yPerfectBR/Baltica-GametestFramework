@@ -7,6 +7,7 @@ import { PacketEncryptor } from "../shared/serializer/packet-encryptor";
 import { PacketCompressor } from "../shared/serializer/packet-compressor";
 import {
    ClientCacheStatusPacket, ClientToServerHandshakePacket, CompressionMethod,
+   DisconnectMessage, DisconnectPacket, DisconnectReason,
    Framer, getPacketId, NetworkSettingsPacket, Packet, Packets, PlayStatus, PlayStatusPacket,
    RequestChunkRadiusPacket, RequestedResourcePack, RequestNetworkSettingsPacket,
    ResourcePackClientResponsePacket, ResourcePackResponse, ResourcePacksInfoPacket,
@@ -195,16 +196,38 @@ export class Client extends Emitter<ClientEvents> {
       this.removeAllListeners();
    }
 
-   public disconnect(reason = "client disconnect"): void {
+   public disconnect(reason = "client disconnect", emitEvent = true): void {
       if (this.isDisconnected) return;
+
+      if (this.packetEncryptor) {
+         try {
+            const packet = new DisconnectPacket();
+            packet.hideDisconnectScreen = true;
+            packet.message = new DisconnectMessage(reason, "");
+            packet.reason = DisconnectReason.LegacyDisconnect;
+            this.send(packet.serialize(), Priority.High);
+         } catch (err) {
+            Logger.error("Failed to send DisconnectPacket", err);
+         }
+      }
+
       this.isDisconnected = true;
-      this.emit("disconnect", reason);
+      if (emitEvent) this.emit("disconnect", reason);
+
       setTimeout(() => {
          if (this.raknet && typeof this.raknet.disconnect === "function") {
             this.raknet.disconnect();
          }
          this.removeAllListeners();
-      }, 50);
+      }, 150);
+   }
+
+   /** Sends Bedrock + RakNet disconnect packets and waits for UDP flush. */
+   public gracefulDisconnect(reason = "client disconnect"): Promise<void> {
+      return new Promise((resolve) => {
+         this.disconnect(reason, false);
+         setTimeout(resolve, 300);
+      });
    }
 
    private async authenticate(): Promise<void> {

@@ -36,3 +36,6 @@ apps/
 *.so
 *.dylib
 *.bin
+bun.lock
+bun.lock
+package-lock.json
